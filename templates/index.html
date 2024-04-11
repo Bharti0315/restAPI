@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book API Output</title>
+</head>
+<body>
+    <h1>Book API Output</h1>
+    <div id="books-output"></div>
+
+    <h2>Add a New Book</h2>
+    <form id="add-book-form">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" required><br><br>
+        <label for="author">Author:</label>
+        <input type="text" id="author" name="author" required><br><br>
+        <button type="submit">Add Book</button>
+    </form>
+
+    <script>
+        // Function to fetch and display books
+        function fetchBooks() {
+            fetch('/books')
+                .then(response => response.json())
+                .then(data => {
+                    const booksOutput = document.getElementById('books-output');
+                    booksOutput.innerHTML = ''; // Clear previous content
+                    data.forEach(book => {
+                        const bookDiv = document.createElement('div');
+                        bookDiv.innerHTML = `<p><strong>ID:</strong> ${book.id}</p><p><strong>Title:</strong> ${book.title}</p><p><strong>Author:</strong> ${book.author}</p>`;
+                        booksOutput.appendChild(bookDiv);
+                    });
+                })
+                .catch(error => console.error('Error fetching books:', error));
+        }
+
+        // Call the fetchBooks function when the page loads
+        window.onload = fetchBooks;
+
+        // Function to handle form submission
+        document.getElementById('add-book-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const formData = new FormData(this); // Get form data
+            const title = formData.get('title');
+            const author = formData.get('author');
+
+            fetch('/books', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ title, author }) // Convert data to JSON format
+            })
+            .then(response => {
+                if (response.ok) {
+                    // If book added successfully, fetch and display updated list of books
+                    fetchBooks();
+                    // Reset form fields
+                    this.reset();
+                } else {
+                    // If error occurred, log error message
+                    console.error('Failed to add book:', response.statusText);
+                }
+            })
+            .catch(error => console.error('Error adding book:', error));
+        });
+    </script>
+</body>
+</html>
